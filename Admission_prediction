@@ -1,0 +1,1842 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "b103ea10",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:23.379879Z",
+     "iopub.status.busy": "2025-02-13T19:28:23.379585Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.125743Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.124820Z"
+    },
+    "papermill": {
+     "duration": 0.753016,
+     "end_time": "2025-02-13T19:28:24.127187",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:23.374171",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/graduate-admissions/Admission_Predict.csv\n",
+      "/kaggle/input/graduate-admissions/Admission_Predict_Ver1.1.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "4bb5f719",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.137098Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.136707Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.149769Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.148911Z"
+    },
+    "papermill": {
+     "duration": 0.019498,
+     "end_time": "2025-02-13T19:28:24.151260",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.131762",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "df=pd.read_csv(\"/kaggle/input/graduate-admissions/Admission_Predict_Ver1.1.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "7b29ac6c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.159723Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.159457Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.164440Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.163681Z"
+    },
+    "papermill": {
+     "duration": 0.010315,
+     "end_time": "2025-02-13T19:28:24.165511",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.155196",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(500, 9)"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "f80ce2a9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.174287Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.174059Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.202847Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.202059Z"
+    },
+    "papermill": {
+     "duration": 0.034577,
+     "end_time": "2025-02-13T19:28:24.204163",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.169586",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Serial No.</th>\n",
+       "      <th>GRE Score</th>\n",
+       "      <th>TOEFL Score</th>\n",
+       "      <th>University Rating</th>\n",
+       "      <th>SOP</th>\n",
+       "      <th>LOR</th>\n",
+       "      <th>CGPA</th>\n",
+       "      <th>Research</th>\n",
+       "      <th>Chance of Admit</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>337</td>\n",
+       "      <td>118</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.65</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.92</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>324</td>\n",
+       "      <td>107</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>8.87</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.76</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>316</td>\n",
+       "      <td>104</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>8.00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.72</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>322</td>\n",
+       "      <td>110</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>2.5</td>\n",
+       "      <td>8.67</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.80</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>314</td>\n",
+       "      <td>103</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>8.21</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.65</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>495</th>\n",
+       "      <td>496</td>\n",
+       "      <td>332</td>\n",
+       "      <td>108</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.87</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>496</th>\n",
+       "      <td>497</td>\n",
+       "      <td>337</td>\n",
+       "      <td>117</td>\n",
+       "      <td>5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.87</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.96</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>497</th>\n",
+       "      <td>498</td>\n",
+       "      <td>330</td>\n",
+       "      <td>120</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.56</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.93</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>498</th>\n",
+       "      <td>499</td>\n",
+       "      <td>312</td>\n",
+       "      <td>103</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>8.43</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.73</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>499</th>\n",
+       "      <td>500</td>\n",
+       "      <td>327</td>\n",
+       "      <td>113</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.04</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.84</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>500 rows × 9 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     Serial No.  GRE Score  TOEFL Score  University Rating  SOP  LOR   CGPA  \\\n",
+       "0             1        337          118                  4  4.5   4.5  9.65   \n",
+       "1             2        324          107                  4  4.0   4.5  8.87   \n",
+       "2             3        316          104                  3  3.0   3.5  8.00   \n",
+       "3             4        322          110                  3  3.5   2.5  8.67   \n",
+       "4             5        314          103                  2  2.0   3.0  8.21   \n",
+       "..          ...        ...          ...                ...  ...   ...   ...   \n",
+       "495         496        332          108                  5  4.5   4.0  9.02   \n",
+       "496         497        337          117                  5  5.0   5.0  9.87   \n",
+       "497         498        330          120                  5  4.5   5.0  9.56   \n",
+       "498         499        312          103                  4  4.0   5.0  8.43   \n",
+       "499         500        327          113                  4  4.5   4.5  9.04   \n",
+       "\n",
+       "     Research  Chance of Admit   \n",
+       "0           1              0.92  \n",
+       "1           1              0.76  \n",
+       "2           1              0.72  \n",
+       "3           1              0.80  \n",
+       "4           0              0.65  \n",
+       "..        ...               ...  \n",
+       "495         1              0.87  \n",
+       "496         1              0.96  \n",
+       "497         1              0.93  \n",
+       "498         0              0.73  \n",
+       "499         0              0.84  \n",
+       "\n",
+       "[500 rows x 9 columns]"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "68567f8b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.214081Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.213821Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.233077Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.232128Z"
+    },
+    "papermill": {
+     "duration": 0.026057,
+     "end_time": "2025-02-13T19:28:24.234411",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.208354",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 500 entries, 0 to 499\n",
+      "Data columns (total 9 columns):\n",
+      " #   Column             Non-Null Count  Dtype  \n",
+      "---  ------             --------------  -----  \n",
+      " 0   Serial No.         500 non-null    int64  \n",
+      " 1   GRE Score          500 non-null    int64  \n",
+      " 2   TOEFL Score        500 non-null    int64  \n",
+      " 3   University Rating  500 non-null    int64  \n",
+      " 4   SOP                500 non-null    float64\n",
+      " 5   LOR                500 non-null    float64\n",
+      " 6   CGPA               500 non-null    float64\n",
+      " 7   Research           500 non-null    int64  \n",
+      " 8   Chance of Admit    500 non-null    float64\n",
+      "dtypes: float64(4), int64(5)\n",
+      "memory usage: 35.3 KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "94245f79",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.244424Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.244226Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.250106Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.249157Z"
+    },
+    "papermill": {
+     "duration": 0.012526,
+     "end_time": "2025-02-13T19:28:24.251527",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.239001",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.duplicated().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "1bbf8121",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.261825Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.261609Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.273561Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.272789Z"
+    },
+    "papermill": {
+     "duration": 0.018687,
+     "end_time": "2025-02-13T19:28:24.275044",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.256357",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>GRE Score</th>\n",
+       "      <th>TOEFL Score</th>\n",
+       "      <th>University Rating</th>\n",
+       "      <th>SOP</th>\n",
+       "      <th>LOR</th>\n",
+       "      <th>CGPA</th>\n",
+       "      <th>Research</th>\n",
+       "      <th>Chance of Admit</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>337</td>\n",
+       "      <td>118</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.65</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.92</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>324</td>\n",
+       "      <td>107</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>8.87</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.76</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>316</td>\n",
+       "      <td>104</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>8.00</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.72</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>322</td>\n",
+       "      <td>110</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>2.5</td>\n",
+       "      <td>8.67</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.80</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>314</td>\n",
+       "      <td>103</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>8.21</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.65</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>495</th>\n",
+       "      <td>332</td>\n",
+       "      <td>108</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.87</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>496</th>\n",
+       "      <td>337</td>\n",
+       "      <td>117</td>\n",
+       "      <td>5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.87</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.96</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>497</th>\n",
+       "      <td>330</td>\n",
+       "      <td>120</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.56</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.93</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>498</th>\n",
+       "      <td>312</td>\n",
+       "      <td>103</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>8.43</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.73</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>499</th>\n",
+       "      <td>327</td>\n",
+       "      <td>113</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.04</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.84</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>500 rows × 8 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     GRE Score  TOEFL Score  University Rating  SOP  LOR   CGPA  Research  \\\n",
+       "0          337          118                  4  4.5   4.5  9.65         1   \n",
+       "1          324          107                  4  4.0   4.5  8.87         1   \n",
+       "2          316          104                  3  3.0   3.5  8.00         1   \n",
+       "3          322          110                  3  3.5   2.5  8.67         1   \n",
+       "4          314          103                  2  2.0   3.0  8.21         0   \n",
+       "..         ...          ...                ...  ...   ...   ...       ...   \n",
+       "495        332          108                  5  4.5   4.0  9.02         1   \n",
+       "496        337          117                  5  5.0   5.0  9.87         1   \n",
+       "497        330          120                  5  4.5   5.0  9.56         1   \n",
+       "498        312          103                  4  4.0   5.0  8.43         0   \n",
+       "499        327          113                  4  4.5   4.5  9.04         0   \n",
+       "\n",
+       "     Chance of Admit   \n",
+       "0                0.92  \n",
+       "1                0.76  \n",
+       "2                0.72  \n",
+       "3                0.80  \n",
+       "4                0.65  \n",
+       "..                ...  \n",
+       "495              0.87  \n",
+       "496              0.96  \n",
+       "497              0.93  \n",
+       "498              0.73  \n",
+       "499              0.84  \n",
+       "\n",
+       "[500 rows x 8 columns]"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.drop(columns=['Serial No.'], inplace=True)\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "8574a18a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.286730Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.286539Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.290305Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.289562Z"
+    },
+    "papermill": {
+     "duration": 0.010114,
+     "end_time": "2025-02-13T19:28:24.291677",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.281563",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Index(['GRE Score', 'TOEFL Score', 'University Rating', 'SOP', 'LOR ', 'CGPA',\n",
+      "       'Research', 'Chance of Admit '],\n",
+      "      dtype='object')\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(df.columns)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "4bad4973",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.301994Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.301758Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.305425Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.304798Z"
+    },
+    "papermill": {
+     "duration": 0.01011,
+     "end_time": "2025-02-13T19:28:24.306589",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.296479",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "X=df.drop(columns=['Chance of Admit '])\n",
+    "y=df['Chance of Admit ']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "c2f7ac64",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.317084Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.316845Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.327379Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.326694Z"
+    },
+    "papermill": {
+     "duration": 0.016909,
+     "end_time": "2025-02-13T19:28:24.328764",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.311855",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>GRE Score</th>\n",
+       "      <th>TOEFL Score</th>\n",
+       "      <th>University Rating</th>\n",
+       "      <th>SOP</th>\n",
+       "      <th>LOR</th>\n",
+       "      <th>CGPA</th>\n",
+       "      <th>Research</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>337</td>\n",
+       "      <td>118</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.65</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>324</td>\n",
+       "      <td>107</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>8.87</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>316</td>\n",
+       "      <td>104</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>8.00</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>322</td>\n",
+       "      <td>110</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>2.5</td>\n",
+       "      <td>8.67</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>314</td>\n",
+       "      <td>103</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>8.21</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>495</th>\n",
+       "      <td>332</td>\n",
+       "      <td>108</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>9.02</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>496</th>\n",
+       "      <td>337</td>\n",
+       "      <td>117</td>\n",
+       "      <td>5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.87</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>497</th>\n",
+       "      <td>330</td>\n",
+       "      <td>120</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.56</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>498</th>\n",
+       "      <td>312</td>\n",
+       "      <td>103</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>8.43</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>499</th>\n",
+       "      <td>327</td>\n",
+       "      <td>113</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>9.04</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>500 rows × 7 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     GRE Score  TOEFL Score  University Rating  SOP  LOR   CGPA  Research\n",
+       "0          337          118                  4  4.5   4.5  9.65         1\n",
+       "1          324          107                  4  4.0   4.5  8.87         1\n",
+       "2          316          104                  3  3.0   3.5  8.00         1\n",
+       "3          322          110                  3  3.5   2.5  8.67         1\n",
+       "4          314          103                  2  2.0   3.0  8.21         0\n",
+       "..         ...          ...                ...  ...   ...   ...       ...\n",
+       "495        332          108                  5  4.5   4.0  9.02         1\n",
+       "496        337          117                  5  5.0   5.0  9.87         1\n",
+       "497        330          120                  5  4.5   5.0  9.56         1\n",
+       "498        312          103                  4  4.0   5.0  8.43         0\n",
+       "499        327          113                  4  4.5   4.5  9.04         0\n",
+       "\n",
+       "[500 rows x 7 columns]"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "81b1e7c6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.339227Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.339034Z",
+     "iopub.status.idle": "2025-02-13T19:28:24.344352Z",
+     "shell.execute_reply": "2025-02-13T19:28:24.343667Z"
+    },
+    "papermill": {
+     "duration": 0.01186,
+     "end_time": "2025-02-13T19:28:24.345599",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.333739",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0      0.92\n",
+       "1      0.76\n",
+       "2      0.72\n",
+       "3      0.80\n",
+       "4      0.65\n",
+       "       ... \n",
+       "495    0.87\n",
+       "496    0.96\n",
+       "497    0.93\n",
+       "498    0.73\n",
+       "499    0.84\n",
+       "Name: Chance of Admit , Length: 500, dtype: float64"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "y"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "f380b759",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:24.356070Z",
+     "iopub.status.busy": "2025-02-13T19:28:24.355868Z",
+     "iopub.status.idle": "2025-02-13T19:28:25.474378Z",
+     "shell.execute_reply": "2025-02-13T19:28:25.473615Z"
+    },
+    "papermill": {
+     "duration": 1.125392,
+     "end_time": "2025-02-13T19:28:25.475948",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:24.350556",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from sklearn.model_selection import train_test_split\n",
+    "X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "76f5e9b7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:25.487196Z",
+     "iopub.status.busy": "2025-02-13T19:28:25.486822Z",
+     "iopub.status.idle": "2025-02-13T19:28:25.498334Z",
+     "shell.execute_reply": "2025-02-13T19:28:25.497440Z"
+    },
+    "papermill": {
+     "duration": 0.018063,
+     "end_time": "2025-02-13T19:28:25.499621",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:25.481558",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>GRE Score</th>\n",
+       "      <th>TOEFL Score</th>\n",
+       "      <th>University Rating</th>\n",
+       "      <th>SOP</th>\n",
+       "      <th>LOR</th>\n",
+       "      <th>CGPA</th>\n",
+       "      <th>Research</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>238</th>\n",
+       "      <td>310</td>\n",
+       "      <td>104</td>\n",
+       "      <td>3</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>8.37</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>438</th>\n",
+       "      <td>318</td>\n",
+       "      <td>110</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2.5</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>8.54</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>475</th>\n",
+       "      <td>300</td>\n",
+       "      <td>101</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>2.5</td>\n",
+       "      <td>7.88</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>58</th>\n",
+       "      <td>300</td>\n",
+       "      <td>99</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>6.80</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>380</th>\n",
+       "      <td>322</td>\n",
+       "      <td>104</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>8.84</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>255</th>\n",
+       "      <td>307</td>\n",
+       "      <td>110</td>\n",
+       "      <td>4</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>8.37</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>72</th>\n",
+       "      <td>321</td>\n",
+       "      <td>111</td>\n",
+       "      <td>5</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>9.45</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>396</th>\n",
+       "      <td>325</td>\n",
+       "      <td>107</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>3.5</td>\n",
+       "      <td>9.11</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>235</th>\n",
+       "      <td>326</td>\n",
+       "      <td>111</td>\n",
+       "      <td>5</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>9.23</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>300</td>\n",
+       "      <td>105</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>7.80</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>400 rows × 7 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     GRE Score  TOEFL Score  University Rating  SOP  LOR   CGPA  Research\n",
+       "238        310          104                  3  2.0   3.5  8.37         0\n",
+       "438        318          110                  1  2.5   3.5  8.54         1\n",
+       "475        300          101                  3  3.5   2.5  7.88         0\n",
+       "58         300           99                  1  3.0   2.0  6.80         1\n",
+       "380        322          104                  3  3.5   4.0  8.84         1\n",
+       "..         ...          ...                ...  ...   ...   ...       ...\n",
+       "255        307          110                  4  4.0   4.5  8.37         0\n",
+       "72         321          111                  5  5.0   5.0  9.45         1\n",
+       "396        325          107                  3  3.0   3.5  9.11         1\n",
+       "235        326          111                  5  4.5   4.0  9.23         1\n",
+       "37         300          105                  1  1.0   2.0  7.80         0\n",
+       "\n",
+       "[400 rows x 7 columns]"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X_train"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "10b09e8c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:25.510787Z",
+     "iopub.status.busy": "2025-02-13T19:28:25.510513Z",
+     "iopub.status.idle": "2025-02-13T19:28:25.518998Z",
+     "shell.execute_reply": "2025-02-13T19:28:25.518225Z"
+    },
+    "papermill": {
+     "duration": 0.015302,
+     "end_time": "2025-02-13T19:28:25.520297",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:25.504995",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from sklearn.preprocessing import MinMaxScaler\n",
+    "scaler=MinMaxScaler()\n",
+    "X_train_scaled=scaler.fit_transform(X_train)\n",
+    "X_test_scaled=scaler.fit_transform(X_test)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "e163a90c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:25.530981Z",
+     "iopub.status.busy": "2025-02-13T19:28:25.530694Z",
+     "iopub.status.idle": "2025-02-13T19:28:25.535361Z",
+     "shell.execute_reply": "2025-02-13T19:28:25.534771Z"
+    },
+    "papermill": {
+     "duration": 0.011338,
+     "end_time": "2025-02-13T19:28:25.536581",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:25.525243",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[0.4       , 0.42857143, 0.5       , ..., 0.57142857, 0.50320513,\n",
+       "        0.        ],\n",
+       "       [0.56      , 0.64285714, 0.        , ..., 0.57142857, 0.55769231,\n",
+       "        1.        ],\n",
+       "       [0.2       , 0.32142857, 0.5       , ..., 0.28571429, 0.34615385,\n",
+       "        0.        ],\n",
+       "       ...,\n",
+       "       [0.7       , 0.53571429, 0.5       , ..., 0.57142857, 0.74038462,\n",
+       "        1.        ],\n",
+       "       [0.72      , 0.67857143, 1.        , ..., 0.71428571, 0.77884615,\n",
+       "        1.        ],\n",
+       "       [0.2       , 0.46428571, 0.        , ..., 0.14285714, 0.32051282,\n",
+       "        0.        ]])"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X_train_scaled"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "16318f2e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:25.547633Z",
+     "iopub.status.busy": "2025-02-13T19:28:25.547415Z",
+     "iopub.status.idle": "2025-02-13T19:28:37.035073Z",
+     "shell.execute_reply": "2025-02-13T19:28:37.033981Z"
+    },
+    "papermill": {
+     "duration": 11.494675,
+     "end_time": "2025-02-13T19:28:37.036729",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:25.542054",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import tensorflow\n",
+    "from tensorflow import keras\n",
+    "from tensorflow.keras import Sequential\n",
+    "from tensorflow.keras.layers import Dense"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "c1bb5bc2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:37.048969Z",
+     "iopub.status.busy": "2025-02-13T19:28:37.048466Z",
+     "iopub.status.idle": "2025-02-13T19:28:39.332780Z",
+     "shell.execute_reply": "2025-02-13T19:28:39.332078Z"
+    },
+    "papermill": {
+     "duration": 2.291721,
+     "end_time": "2025-02-13T19:28:39.334408",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:37.042687",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.10/dist-packages/keras/src/layers/core/dense.py:87: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.\n",
+      "  super().__init__(activity_regularizer=activity_regularizer, **kwargs)\n"
+     ]
+    }
+   ],
+   "source": [
+    "model=Sequential()\n",
+    "\n",
+    "model.add(Dense(7,activation='relu',input_dim=7))\n",
+    "model.add(Dense(7,activation='relu'))\n",
+    "model.add(Dense(1,activation='linear'))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "e27b0ed8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:39.346760Z",
+     "iopub.status.busy": "2025-02-13T19:28:39.346525Z",
+     "iopub.status.idle": "2025-02-13T19:28:39.360117Z",
+     "shell.execute_reply": "2025-02-13T19:28:39.359438Z"
+    },
+    "papermill": {
+     "duration": 0.020759,
+     "end_time": "2025-02-13T19:28:39.361329",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:39.340570",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"font-weight: bold\">Model: \"sequential\"</span>\n",
+       "</pre>\n"
+      ],
+      "text/plain": [
+       "\u001b[1mModel: \"sequential\"\u001b[0m\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n",
+       "┃<span style=\"font-weight: bold\"> Layer (type)                         </span>┃<span style=\"font-weight: bold\"> Output Shape                </span>┃<span style=\"font-weight: bold\">         Param # </span>┃\n",
+       "┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩\n",
+       "│ dense (<span style=\"color: #0087ff; text-decoration-color: #0087ff\">Dense</span>)                        │ (<span style=\"color: #00d7ff; text-decoration-color: #00d7ff\">None</span>, <span style=\"color: #00af00; text-decoration-color: #00af00\">7</span>)                   │              <span style=\"color: #00af00; text-decoration-color: #00af00\">56</span> │\n",
+       "├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤\n",
+       "│ dense_1 (<span style=\"color: #0087ff; text-decoration-color: #0087ff\">Dense</span>)                      │ (<span style=\"color: #00d7ff; text-decoration-color: #00d7ff\">None</span>, <span style=\"color: #00af00; text-decoration-color: #00af00\">7</span>)                   │              <span style=\"color: #00af00; text-decoration-color: #00af00\">56</span> │\n",
+       "├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤\n",
+       "│ dense_2 (<span style=\"color: #0087ff; text-decoration-color: #0087ff\">Dense</span>)                      │ (<span style=\"color: #00d7ff; text-decoration-color: #00d7ff\">None</span>, <span style=\"color: #00af00; text-decoration-color: #00af00\">1</span>)                   │               <span style=\"color: #00af00; text-decoration-color: #00af00\">8</span> │\n",
+       "└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘\n",
+       "</pre>\n"
+      ],
+      "text/plain": [
+       "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n",
+       "┃\u001b[1m \u001b[0m\u001b[1mLayer (type)                        \u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1mOutput Shape               \u001b[0m\u001b[1m \u001b[0m┃\u001b[1m \u001b[0m\u001b[1m        Param #\u001b[0m\u001b[1m \u001b[0m┃\n",
+       "┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩\n",
+       "│ dense (\u001b[38;5;33mDense\u001b[0m)                        │ (\u001b[38;5;45mNone\u001b[0m, \u001b[38;5;34m7\u001b[0m)                   │              \u001b[38;5;34m56\u001b[0m │\n",
+       "├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤\n",
+       "│ dense_1 (\u001b[38;5;33mDense\u001b[0m)                      │ (\u001b[38;5;45mNone\u001b[0m, \u001b[38;5;34m7\u001b[0m)                   │              \u001b[38;5;34m56\u001b[0m │\n",
+       "├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤\n",
+       "│ dense_2 (\u001b[38;5;33mDense\u001b[0m)                      │ (\u001b[38;5;45mNone\u001b[0m, \u001b[38;5;34m1\u001b[0m)                   │               \u001b[38;5;34m8\u001b[0m │\n",
+       "└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"font-weight: bold\"> Total params: </span><span style=\"color: #00af00; text-decoration-color: #00af00\">120</span> (480.00 B)\n",
+       "</pre>\n"
+      ],
+      "text/plain": [
+       "\u001b[1m Total params: \u001b[0m\u001b[38;5;34m120\u001b[0m (480.00 B)\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"font-weight: bold\"> Trainable params: </span><span style=\"color: #00af00; text-decoration-color: #00af00\">120</span> (480.00 B)\n",
+       "</pre>\n"
+      ],
+      "text/plain": [
+       "\u001b[1m Trainable params: \u001b[0m\u001b[38;5;34m120\u001b[0m (480.00 B)\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"font-weight: bold\"> Non-trainable params: </span><span style=\"color: #00af00; text-decoration-color: #00af00\">0</span> (0.00 B)\n",
+       "</pre>\n"
+      ],
+      "text/plain": [
+       "\u001b[1m Non-trainable params: \u001b[0m\u001b[38;5;34m0\u001b[0m (0.00 B)\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "model.summary()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "e2edd031",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:39.373428Z",
+     "iopub.status.busy": "2025-02-13T19:28:39.373221Z",
+     "iopub.status.idle": "2025-02-13T19:28:39.383865Z",
+     "shell.execute_reply": "2025-02-13T19:28:39.383229Z"
+    },
+    "papermill": {
+     "duration": 0.018155,
+     "end_time": "2025-02-13T19:28:39.385163",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:39.367008",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "history=model.compile(loss='mean_squared_error', optimizer='Adam')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "5283c7c7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:39.397372Z",
+     "iopub.status.busy": "2025-02-13T19:28:39.397168Z",
+     "iopub.status.idle": "2025-02-13T19:28:46.867741Z",
+     "shell.execute_reply": "2025-02-13T19:28:46.866872Z"
+    },
+    "papermill": {
+     "duration": 7.478481,
+     "end_time": "2025-02-13T19:28:46.869197",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:39.390716",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 53ms/step - loss: 0.0987 - val_loss: 0.0582\n",
+      "Epoch 2/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0485 - val_loss: 0.0249\n",
+      "Epoch 3/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0216 - val_loss: 0.0127\n",
+      "Epoch 4/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0136 - val_loss: 0.0117\n",
+      "Epoch 5/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0123 - val_loss: 0.0110\n",
+      "Epoch 6/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0139 - val_loss: 0.0100\n",
+      "Epoch 7/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0117 - val_loss: 0.0097\n",
+      "Epoch 8/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0106 - val_loss: 0.0095\n",
+      "Epoch 9/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0093 - val_loss: 0.0092\n",
+      "Epoch 10/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0101 - val_loss: 0.0090\n",
+      "Epoch 11/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0088 - val_loss: 0.0087\n",
+      "Epoch 12/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0091 - val_loss: 0.0085\n",
+      "Epoch 13/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0088 - val_loss: 0.0083\n",
+      "Epoch 14/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0092 - val_loss: 0.0080\n",
+      "Epoch 15/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0081 - val_loss: 0.0078\n",
+      "Epoch 16/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0085 - val_loss: 0.0075\n",
+      "Epoch 17/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0077 - val_loss: 0.0073\n",
+      "Epoch 18/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0087 - val_loss: 0.0070\n",
+      "Epoch 19/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0080 - val_loss: 0.0068\n",
+      "Epoch 20/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0074 - val_loss: 0.0066\n",
+      "Epoch 21/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0061 - val_loss: 0.0065\n",
+      "Epoch 22/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0062 - val_loss: 0.0063\n",
+      "Epoch 23/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0066 - val_loss: 0.0061\n",
+      "Epoch 24/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0064 - val_loss: 0.0060\n",
+      "Epoch 25/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0062 - val_loss: 0.0059\n",
+      "Epoch 26/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0067 - val_loss: 0.0058\n",
+      "Epoch 27/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0066 - val_loss: 0.0056\n",
+      "Epoch 28/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0064 - val_loss: 0.0055\n",
+      "Epoch 29/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0073 - val_loss: 0.0054\n",
+      "Epoch 30/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0068 - val_loss: 0.0053\n",
+      "Epoch 31/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0054 - val_loss: 0.0052\n",
+      "Epoch 32/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0059 - val_loss: 0.0052\n",
+      "Epoch 33/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0070 - val_loss: 0.0051\n",
+      "Epoch 34/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0055 - val_loss: 0.0050\n",
+      "Epoch 35/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0057 - val_loss: 0.0050\n",
+      "Epoch 36/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0051 - val_loss: 0.0049\n",
+      "Epoch 37/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0054 - val_loss: 0.0048\n",
+      "Epoch 38/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0059 - val_loss: 0.0048\n",
+      "Epoch 39/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0048\n",
+      "Epoch 40/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0047\n",
+      "Epoch 41/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0058 - val_loss: 0.0047\n",
+      "Epoch 42/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0057 - val_loss: 0.0046\n",
+      "Epoch 43/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0046\n",
+      "Epoch 44/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0045\n",
+      "Epoch 45/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0057 - val_loss: 0.0045\n",
+      "Epoch 46/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0051 - val_loss: 0.0045\n",
+      "Epoch 47/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0044\n",
+      "Epoch 48/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0048 - val_loss: 0.0044\n",
+      "Epoch 49/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0047 - val_loss: 0.0044\n",
+      "Epoch 50/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0043\n",
+      "Epoch 51/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0047 - val_loss: 0.0043\n",
+      "Epoch 52/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0043\n",
+      "Epoch 53/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0043\n",
+      "Epoch 54/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0056 - val_loss: 0.0042\n",
+      "Epoch 55/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0050 - val_loss: 0.0042\n",
+      "Epoch 56/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0051 - val_loss: 0.0042\n",
+      "Epoch 57/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0042\n",
+      "Epoch 58/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0043 - val_loss: 0.0042\n",
+      "Epoch 59/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0041\n",
+      "Epoch 60/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0043 - val_loss: 0.0041\n",
+      "Epoch 61/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0041\n",
+      "Epoch 62/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0053 - val_loss: 0.0041\n",
+      "Epoch 63/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0043 - val_loss: 0.0041\n",
+      "Epoch 64/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0047 - val_loss: 0.0040\n",
+      "Epoch 65/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0040\n",
+      "Epoch 66/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0040\n",
+      "Epoch 67/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0040\n",
+      "Epoch 68/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0040\n",
+      "Epoch 69/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0040\n",
+      "Epoch 70/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0041 - val_loss: 0.0039\n",
+      "Epoch 71/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0036 - val_loss: 0.0039\n",
+      "Epoch 72/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0039\n",
+      "Epoch 73/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0039\n",
+      "Epoch 74/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0040\n",
+      "Epoch 75/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0039\n",
+      "Epoch 76/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0048 - val_loss: 0.0039\n",
+      "Epoch 77/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0038 - val_loss: 0.0039\n",
+      "Epoch 78/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0052 - val_loss: 0.0039\n",
+      "Epoch 79/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0038\n",
+      "Epoch 80/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0050 - val_loss: 0.0038\n",
+      "Epoch 81/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0049 - val_loss: 0.0038\n",
+      "Epoch 82/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0035 - val_loss: 0.0038\n",
+      "Epoch 83/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0045 - val_loss: 0.0038\n",
+      "Epoch 84/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0038 - val_loss: 0.0038\n",
+      "Epoch 85/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0040 - val_loss: 0.0038\n",
+      "Epoch 86/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0039 - val_loss: 0.0038\n",
+      "Epoch 87/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0044 - val_loss: 0.0038\n",
+      "Epoch 88/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 5ms/step - loss: 0.0037 - val_loss: 0.0038\n",
+      "Epoch 89/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0042 - val_loss: 0.0038\n",
+      "Epoch 90/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0046 - val_loss: 0.0038\n",
+      "Epoch 91/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0047 - val_loss: 0.0038\n",
+      "Epoch 92/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0036 - val_loss: 0.0038\n",
+      "Epoch 93/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0041 - val_loss: 0.0037\n",
+      "Epoch 94/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0042 - val_loss: 0.0037\n",
+      "Epoch 95/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0043 - val_loss: 0.0038\n",
+      "Epoch 96/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0042 - val_loss: 0.0037\n",
+      "Epoch 97/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0042 - val_loss: 0.0037\n",
+      "Epoch 98/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0036 - val_loss: 0.0037\n",
+      "Epoch 99/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0039 - val_loss: 0.0037\n",
+      "Epoch 100/100\n",
+      "\u001b[1m10/10\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 4ms/step - loss: 0.0036 - val_loss: 0.0037\n"
+     ]
+    }
+   ],
+   "source": [
+    "history=model.fit(X_train_scaled,y_train,epochs=100,validation_split=0.2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "0f590f23",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:46.909716Z",
+     "iopub.status.busy": "2025-02-13T19:28:46.909476Z",
+     "iopub.status.idle": "2025-02-13T19:28:47.247487Z",
+     "shell.execute_reply": "2025-02-13T19:28:47.246564Z"
+    },
+    "papermill": {
+     "duration": 0.359251,
+     "end_time": "2025-02-13T19:28:47.248923",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:46.889672",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\u001b[1m4/4\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 47ms/step\n"
+     ]
+    }
+   ],
+   "source": [
+    "y_pred=model.predict(X_test_scaled)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "085abd6e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:47.289237Z",
+     "iopub.status.busy": "2025-02-13T19:28:47.288966Z",
+     "iopub.status.idle": "2025-02-13T19:28:47.295046Z",
+     "shell.execute_reply": "2025-02-13T19:28:47.294049Z"
+    },
+    "papermill": {
+     "duration": 0.027716,
+     "end_time": "2025-02-13T19:28:47.296771",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:47.269055",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.7613579555757607"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from sklearn.metrics import r2_score\n",
+    "r2_score(y_test,y_pred)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "d6943a47",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-02-13T19:28:47.336243Z",
+     "iopub.status.busy": "2025-02-13T19:28:47.336004Z",
+     "iopub.status.idle": "2025-02-13T19:28:47.564525Z",
+     "shell.execute_reply": "2025-02-13T19:28:47.563667Z"
+    },
+    "papermill": {
+     "duration": 0.249479,
+     "end_time": "2025-02-13T19:28:47.565960",
+     "exception": false,
+     "start_time": "2025-02-13T19:28:47.316481",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[<matplotlib.lines.Line2D at 0x7f6a78ceae30>]"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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AMA3ljEmry7ShQsXav78+XrwwQclSa7rqq6uTjfccINuvvnmo8YvX75c3d3devLJJzPPXXzxxZozZ47Wrl0rSfryl7+sYDCo//iP/zihD9HR0aGKigq1t7ervLz8hN5jKI+8uFff+tmrunTGOP3bX84fkd8BAMAnST5/v/OqsMRiMW3fvl0NDQ39b2DbamhoUHNz86CvaW5uzhovSUuWLMmMd11X//3f/62zzz5bS5Ys0bhx47Rw4UJt2LDhmOcRjUbV0dGRdYy0zN2aqbAAAFBweQWWgwcPKplMqqamJuv5mpoatbS0DPqalpaW445va2tTV1eX7r77bl122WX6n//5H33xi1/Ul770JT333HODvmdjY6MqKioyR11dXT4f44SwcRwAAP7xfZWQ63oB4Atf+IK+/vWva86cObr55pv1R3/0R5kpo4+75ZZb1N7enjn27ds34ucZZOM4AAB84+QzuLq6WoFAQK2trVnPt7a2qra2dtDX1NbWHnd8dXW1HMfRzJkzs8ace+65ev755wd9z3A4rHA4nM+pn7QQG8cBAOCbvCosoVBIc+fOVVNTU+Y513XV1NSk+vr6QV9TX1+fNV6SNm3alBkfCoU0f/587d69O2vMm2++qSlTpuRzeiOKZc0AAPgnrwqLJK1Zs0YrV67UvHnztGDBAt13333q7u7WqlWrJElXXXWVJk6cqMbGRknS6tWrtXjxYt1zzz1aunSp1q9fr23btunhhx/OvOdNN92k5cuX6zOf+Yw+97nPaePGjfr5z3+uZ599dng+5TBg4zgAAPyTd2BZvny5Dhw4oDvuuEMtLS2aM2eONm7cmGms3bt3r2y7v3CzaNEirVu3TrfddptuvfVWTZ8+XRs2bND555+fGfPFL35Ra9euVWNjo772ta/pnHPO0c9+9jNdcsklw/ARh4HrZvZhYWt+AAAKL+99WEajEduHJdYt/cNUKRnTa3+1W5//l+0aVxbW1m83DPlSAABwfCO2D8snTiAsJWOSpIi8R6aEAAAoPALL8QQcyfZmzULGCyw03QIAUHgElqE4RZKkoElXWE75GTQAAE45BJahON5+LyETleRtzX8atP0AAHBKIbAMJZhdYZGosgAAUGgElqGkKiwDAws3QAQAoLAILENJ9bA47oAKC423AAAUFIFlKMGIJCmQ7FPA9jaPY2kzAACFRWAZiuMFFiX6FGS3WwAAfEFgGUo6sMT7BtyxmcACAEAhEViGkmq6VaK3/47NBBYAAAqKwDKU1LJmJaL9d2xOsKwZAIBCIrAMJTMlNLDCkvTxhAAA+OQhsAwl03TbX2GJUWEBAKCgCCxDCaYDS2+m6ZYeFgAACovAMpSBFRYn3cNCYAEAoJAILEMZ0MMSZlkzAAC+ILAMZeDGcY63cRxTQgAAFBaBZSjBgTvdpptuCSwAABQSgWUoqZsfDtzplgoLAACFRWAZSman2z6abgEA8AmBZSiZnW77Mk23VFgAACgsAstQBlZYMquE2DgOAIBCIrAMZWAPi0PTLQAAfiCwDMUZZJUQU0IAABQUgWUowaP3YaHpFgCAwiKwDCWz0y1NtwAA+IXAMpRBpoTYmh8AgMIisAwlvazZjSsc8FYHRZkSAgCgoAgsQ0kva5YUUVwSy5oBACg0AstQ0lNCkopsL7DEEkm/zgYAgE8kAstQ7IBkByVJEcUkUWEBAKDQCCy5SPWxRKz0lBA9LAAAFBKBJRepaaFwqoeFplsAAAqLwJKLVGAJZaaECCwAABQSgSUXwXSFJSqJewkBAFBoBJZcpJY2hw0VFgAA/EBgyUXqjs0hk17WTGABAKCQCCy5SFVYgsabEmJZMwAAhUVgyUVqWXMwNSXEzQ8BACgsAksuUquEHEPTLQAAfiCw5CIVWIIuTbcAAPiBwJKL1LJmx6XCAgCAHwgsuUhVWAKpwJJwjVyXxlsAAAqFwJILJ7vCItF4CwBAIRFYcpEKLHayP7DQxwIAQOEQWHKR6mEJDAgs9LEAAFA4BJZcpHa6tRJ9cmxLEpvHAQBQSASWXKR2ulWiT8GAd8mYEgIAoHAILLlI7XSrRJ9CjnfJokwJAQBQMASWXKQrLHEqLAAA+IHAkgunv8ISTlVYaLoFAKBwCCy5yOphSTfdElgAACgUAksuBulhocICAEDhEFhykdo4bmAPCzvdAgBQOASWXKQDy4AKC/uwAABQOASWXAT7A0umwsKUEAAABUNgyUVmSqhXIZY1AwBQcASWXKQDi0kqEvCmgqiwAABQOASWXKQDi6RiOyaJplsAAAqJwJKLAYGlxE5KosICAEAhEVhyYdtSwNs8rihVYaGHBQCAwiGw5CpVZSmx4pIILAAAFBKBJVeppc2RVGBhSggAgMIhsOQqdT+honRgYeM4AAAKhsCSq9Qdm6mwAABQeASWXKUqLBGLplsAAAqNwJKrYHaFJZpI+nk2AAB8ohBYcpVaJVScCiy9cSosAAAUCoElVx8LLN3RhJ9nAwDAJ8oJBZaHHnpIU6dOVSQS0cKFC7V169bjjn/00Uc1Y8YMRSIRzZo1S0899dQxx1577bWyLEv33XffiZzayEktay6yCSwAABRa3oHlkUce0Zo1a3TnnXdqx44dmj17tpYsWaK2trZBx2/evFkrVqzQ1VdfrZ07d2rZsmVatmyZdu3addTYxx9/XC+88IImTJiQ/ycZaakKS3pZc3eMwAIAQKHkHVjuvfdefeUrX9GqVas0c+ZMrV27VsXFxfrBD34w6Pj7779fl112mW666Sade+65+s53vqOLLrpIDz74YNa4/fv364YbbtBPfvITBYPBE/s0IykVWCJKV1hougUAoFDyCiyxWEzbt29XQ0ND/xvYthoaGtTc3Dzoa5qbm7PGS9KSJUuyxruuqyuvvFI33XSTzjvvvCHPIxqNqqOjI+sYcanAEpa3rJkpIQAACievwHLw4EElk0nV1NRkPV9TU6OWlpZBX9PS0jLk+H/4h3+Q4zj62te+ltN5NDY2qqKiInPU1dXl8zFOTKqHJSR6WAAAKDTfVwlt375d999/v370ox/JsqycXnPLLbeovb09c+zbt2+Ez1KZnW5DJipJ6okn5bpszw8AQCHkFViqq6sVCATU2tqa9Xxra6tqa2sHfU1tbe1xx//mN79RW1ubJk+eLMdx5DiO3nvvPX3jG9/Q1KlTB33PcDis8vLyrGPEpXa6DaYCizFSb5w+FgAACiGvwBIKhTR37lw1NTVlnnNdV01NTaqvrx/0NfX19VnjJWnTpk2Z8VdeeaVeeeUVvfTSS5ljwoQJuummm/TLX/4y388zclI73QbcmOxUIYhpIQAACsPJ9wVr1qzRypUrNW/ePC1YsED33Xefuru7tWrVKknSVVddpYkTJ6qxsVGStHr1ai1evFj33HOPli5dqvXr12vbtm16+OGHJUlVVVWqqqrK+h3BYFC1tbU655xzTvbzDZ9UhcWK96kk5KgzmlB3jAoLAACFkHdgWb58uQ4cOKA77rhDLS0tmjNnjjZu3JhprN27d69su79ws2jRIq1bt0633Xabbr31Vk2fPl0bNmzQ+eefP3yfohBSPSxK9Kk4HPACCxUWAAAKwjLGnPKdox0dHaqoqFB7e/vI9bPsekz6f6ukKZ/W7x/+pt450K1HrrlYC8+sGvq1AADgKPn8/fZ9ldApI9hfYSkJeYUpdrsFAKAwCCy5Sm0cp3ifSsIBSex2CwBAoRBYcpUOLIne/goLPSwAABQEgSVXwXRgiaok7AWWLgILAAAFQWDJVWZKqDcTWHpY1gwAQEEQWHLlDKiwhNI9LFRYAAAoBAJLrrJ6WFKBhVVCAAAUBIElV+keFuOqNORtXcMqIQAACoPAkqv0TreSyh0vqNB0CwBAYRBYcpW6l5AklQe8oNLDlBAAAAVBYMmVZWX6WEozFRamhAAAKAQCSz5SVZbSQFyS1MOUEAAABUFgyUeqj6XY9oIKy5oBACgMAks+UhWWEtursHSzcRwAAAVBYMlH6o7NRVYqsEQTMsb4eUYAAHwiEFjykWq6LUpVWBKuUTTh+nlGAAB8IhBY8pEKLGHFMk9xPyEAAEYegSUfqd1uA8mYIkHv0tF4CwDAyCOw5GPAHZtLU3ds5n5CAACMPAJLPgbcsbk4lAosVFgAABhxBJZ8DLxjc7rCwm63AACMOAJLPtJ3bI73qSQUkESFBQCAQiCw5CN9x+ZEX6bCwh2bAQAYeQSWfKTv2JzoyzTdsqwZAICRR2DJR7C/wlKcmhKiwgIAwMgjsOQjXWGJ908J9bCsGQCAEUdgyUdWD0u66ZYpIQAARhqBJR8DelhougUAoHAILPlI97DEe1USYkoIAIBCIbDkY8BOt/0VFqaEAAAYaQSWfAzY6bY01cPSw5QQAAAjjsCSj+DR9xKihwUAgJFHYMnHgLs1l7BxHAAABUNgyUdWDwv3EgIAoFAILPkYeLdmpoQAACgYAks+Bt6tOTUlFE24SiRdH08KAIDTH4ElHwN3ug31X7pu+lgAABhRBJZ8pHe6lVHYSioYsCSxeRwAACONwJKP9E63UuqOzd60EI23AACMLAJLPgIhSV5VRfE+lbLbLQAABUFgyYdlZa0UKg6x2y0AAIVAYMlX5o7NUe7YDABAgRBY8jXgjs2l7HYLAEBBEFjy5Qy8n5A3JUSFBQCAkUVgyVfWHZvTFRYCCwAAI4nAkq+Bd2wOpyssTAkBADCSCCz5GuSOzezDAgDAyCKw5CszJdSXuQEiU0IAAIwsAku+BgYWNo4DAKAgCCz5GnDH5tIwG8cBAFAIBJZ8Dbhjc/peQixrBgBgZBFY8pXZ6bb/XkLd9LAAADCiCCz5Cg6ssKSnhOhhAQBgJBFY8pWusMT7uJcQAAAFQmDJV6aHpX8fFu4lBADAyCKw5Ctc5j32tasktUqoO5aQMcbHkwIA4PRGYMlX6TjvsetApunWGKk3TpUFAICRQmDJVyawtKooGJBlpb6ljwUAgBFDYMlXaY332N0my7Iy2/N3s1IIAIARQ2DJV8kZ3mNfuxTvX9rMDRABABg5BJZ8FY2R7KD3dXd/HwuBBQCAkUNgyZdlDehjaWNpMwAABUBgORHpwNLdlpkSoukWAICRQ2A5ESX9K4VKMxUWAgsAACOFwHIiBuzFUpzZnp8pIQAARgqB5USUDqywsEoIAICRRmA5EQP2YilO78PClBAAACOGwHIi0nuxDFglRIUFAICRQ2A5EekKS1dbZkqohx4WAABGDIHlRAzYhyU9JcSyZgAARg6B5USkA0usUxWBuCR6WAAAGEknFFgeeughTZ06VZFIRAsXLtTWrVuPO/7RRx/VjBkzFIlENGvWLD311FOZn8XjcX3rW9/SrFmzVFJSogkTJuiqq67SBx98cCKnVhjhcikQliRVmo8kcfNDAABGUt6B5ZFHHtGaNWt05513aseOHZo9e7aWLFmitra2Qcdv3rxZK1as0NVXX62dO3dq2bJlWrZsmXbt2iVJ6unp0Y4dO3T77bdrx44deuyxx7R7925dfvnlJ/fJRpJlZfpYKpJHJNF0CwDASLKMMSafFyxcuFDz58/Xgw8+KElyXVd1dXW64YYbdPPNNx81fvny5eru7taTTz6Zee7iiy/WnDlztHbt2kF/x4svvqgFCxbovffe0+TJk4c8p46ODlVUVKi9vV3l5eX5fJwT9/3fl/Zv155LH9bn/rtUEyuL9L83/35hfjcAAKeBfP5+51VhicVi2r59uxoaGvrfwLbV0NCg5ubmQV/T3NycNV6SlixZcszxktTe3i7LslRZWTnoz6PRqDo6OrKOgktVWEoShyXRdAsAwEjKK7AcPHhQyWRSNTU1Wc/X1NSopaVl0Ne0tLTkNb6vr0/f+ta3tGLFimOmrcbGRlVUVGSOurq6fD7G8EjtxVIUPSiJewkBADCSRtUqoXg8rj//8z+XMUbf+973jjnulltuUXt7e+bYt29fAc8yJVVhCUUPSZLiSaNogsZbAABGgpPP4OrqagUCAbW2tmY939raqtra2kFfU1tbm9P4dFh577339PTTTx93LiscDiscDudz6sMvtbQ52HMg81R3NKmwE/DrjAAAOG3lVWEJhUKaO3eumpqaMs+5rqumpibV19cP+pr6+vqs8ZK0adOmrPHpsPLWW2/pV7/6laqqqvI5LX+kAovdc0Bhx7uMrBQCAGBk5FVhkaQ1a9Zo5cqVmjdvnhYsWKD77rtP3d3dWrVqlSTpqquu0sSJE9XY2ChJWr16tRYvXqx77rlHS5cu1fr167Vt2zY9/PDDkryw8qd/+qfasWOHnnzySSWTyUx/y9ixYxUKhYbrsw6vkv47NlcUBdXWGdWBrqjqxhb7e14AAJyG8g4sy5cv14EDB3THHXeopaVFc+bM0caNGzONtXv37pVt9xduFi1apHXr1um2227TrbfequnTp2vDhg06//zzJUn79+/XE088IUmaM2dO1u965pln9NnPfvYEP9oIy2zPf0Dnji9XW+cBvfp+uy6aPMbf8wIA4DSU9z4so5Ev+7BEO6XGSZKkBxY+q3ue+0Bfumii7v3zOYX5/QAAnOJGbB8WDBAqlYLe9M9FVV7vyivvt/t5RgAAnLYILCfKsjJ7scws75UkvX2giw3kAAAYAQSWk5Hai2WMe0TjKyIyRtq1nyoLAADDjcByMkr7VwpdMKlCkvTK+0f8Ox8AAE5TBJaTkQ4s3Qd0waRKSdLL9LEAADDsCCwnY8BeLLNTgYUKCwAAw4/AcjIG7MUyKzUltO9wrw53x3w8KQAATj8ElpNRmr3b7bTqEklUWQAAGG4ElpORWiWk7jZJGtB4Sx8LAADDicByMlL7sKirTTIm03hLhQUAgOFFYDkZ6SmhRJ8U7dTsVIXl5ffbdRrc8QAAgFGDwHIyQiVSqMz7uqtN502oUMC2dKAzqpaOPn/PDQCA0wiB5WSVpqaFuttUFApo+rhSSdLL++hjAQBguBBYTla68barVZLYjwUAgBFAYDlZmcbbA5KkC+pYKQQAwHAjsJys41RYaLwFAGB4EFhOVuZ+Qt5eLOfUlink2OroS+jdQz0+nhgAAKcPAsvJyux26wWWYMDWzPHlkuhjAQBguBBYTlZJdmCRlNmPpfntQ0wLAQAwDAgsJyvTw9IfWC4+s0qStP7Ffbr6/9umfYeZGgIA4GQQWE7WgH1YlKqmXHZ+rVZfOl3BgKWn32jTH/zfX+tfn3tb8aTr44kCAHDqIrCcrPSUUDIm9R2RJFmWpa//n7P1i9W/pwXTxqo3nlTjL97QHz/wvPYc7PbvXAEAOEURWE5WMCIVjfG+3vKvmSqLJH1qXJkeueZi/dOfXqAxxUG90dKpL/7L/+qFdw75dLIAAJyaCCzD4ZKve4/PNkq/vFVy+6d+LMvSn82r0y+//hnNrqvUkZ64rvy3Lfrptn0+nSwAAKceAstw+PRqaUmj9/UL/yL913VSMpE1ZFxZRI9cc7GWXjBe8aTRN//fK2r8xetyXVYRAQAwFALLcKn/a2nZWskKSC+vk356pRTvzRoSCQb0wJcv1NcunS5J+tfn3tE1/7FN7T1xP84YAIBTBoFlOM1ZIS3/sRQIS7ufkh7+rPTOc1lDbNvSmv9ztu5bPkchx9avXm/THz34G+3az72HAAA4FgLLcJvxeenKx6TiKunAG9K/Xy79dKXU/n7WsGUXTtTPrl2kSWOKtO9wr770vc36z6172WgOAIBBEFhGwtRLpBu2SwuukSxbem2D9OB86df/LLnJzLBZkyr03zf8ni6dMU6xhKtbHntVa376sl77oIPgAgDAAJY5Df4ydnR0qKKiQu3t7SovL/f7dLK1vCo99U1p72bv+3Mvl770fW85dIrrGv3rr9/RP/3yDaV7cMdXRPS5GeN06Yxxqj+rSsUhx4eTBwBg5OTz95vAUgjGSC+tk5680dtgburvSV9eJ0Wyz3XrnsP61+fe1v++fVB98f6l0Y5taXZdpS4+c6wWTqvS3CljVBImwAAATm0EltHqneek9VdIsU6p9gLpL37Wf7fnAfriSTW/c0hPv96mp99o0/4j2auNHNvS/Klj9fszxulzM8bprDNKZFlWoT4FAADDgsAymn3wkvTjP5F6DkpjpnmVlpqZxxxujNH7H/Wq+Z1DeuGdQ9ryzuGjAszkscX6zNnVmjdlrOZOGaNJY4oIMACAUY/AMtodelv6j2XSkb3e92ecK81Y6h0TLpSGCBvvHuzW02+06ZndbdryzmHFPnZTxZrysOZNGav5U8dowbQqnVNbpoBNgAEAjC4EllNBZ4v089XS734luQN2xS2tkcbPlsadK407z3s8Y4bkhAZ9m+5oQv/7u4Pasuewtr17WL/9oEOJj+2eWxZxNH/qWC2YNlaLzqrSeRMqCDAAAN8RWE4lvUektzZJbzzphZdY19FjnIg0ca40ud476uZLkYrB3y6W1MvvH9G2dw9r67sfafu7h9UdS2aNqSgK6uIzx2rRWdWaO2WMzq4pU8hhhTsAoLAILKeqeJ/0wQ6p7TWp7XWp9TWp7bdS38d3wbWk6rOliRd5U0gTLpRqZ0nBoqPeMpF09fqHndqyp78HpjOafZ+jkGPr3PHlumBihebUVWrxOWeoujQ8gh8UAAACi9+nM7yMkQ6+Je1tlva+4O3n8tG7R4+zHanmfGnSfGnSPO9x7JlH9cMkkq5e3d+uzW97AeblfUfU0ZcdYCxLmlNXqUtnjNPvz6jRuePLaOIFAAw7AsvprrNV+vAlaf8O6YOdXlWm+8DR4yKVXvVl4kXShIu8IFNWmzXEGKO9h3v08vvtemXfEb2w55B27e/IGjO2JKSLJo/R3CljNG/qGM2aWKFIMDBynw8A8IlAYPmkMUZq3ye9/6L0/nbv8cOXpWT06LGVk6W6haljgdfYG8jehK6lvU/P7G5T0+ttev53B7I2sZOkYMDShXVjdPFZVao/s0oXTq4kwAAA8kZggZSIeb0w+7d7FZj9O7y+GH3sH7dT5K1KmjjXq8RMmidVTslMJUUTSf32gw7teO8jbX/vI2177yMd6MwOQmHH1twpY/TpT1Wr/qwqXTCxQk6AJl4AwPERWDC4vg4vwOzbKu3bIr2/TYp+vKFXUskZXg/MxLn9PTGhEkneFNJ7h3rU/M4hNb99SM3vHDoqwJSGHS2YNlaLzz5DnztnnCZXFRfi0wEATjEEFuTGdaVDv/NCTPpoeVVy49njbMcLL1Mv8Y66hVkB5u0DXWp++5A2pwLMkZ7s1595Rok+d844ffpTVZo1sVJnlLECCQBAYPH7dE5t8T6p5ZVUP8w2rxrT8X72GNuRas5LTSPN8x6rz5ZsW65r9NqHHfrNWwf17O42bX/vo6M2shtfEdH5Eyt0wcQKzZpUodmTKjWmZPCN8QAApy8CC4bXR+9K7z4v7fmN9O5vpI79R48Jl/dPIdUt8L4uHquOvrj+962DemZ3m3bsPaK3D3RpsH/jJo8t1gWTKnTehApNrSrWlKoSTakq5q7UAHAaI7Bg5KRXJGWmkVJLq+M9R48tn+Td2HHcudI477GrbJp+2xbXq/vb9er+dr3yfrv2HOw+5q+rLg1rWnWxplWXaFp1aeqxRHVji1QcIswAwKmMwILCSia8FUnvv+gd+7ZKh98+xmBLGjPFu+HjGedI485VZ/l0vdpXo50tfXqrtVPvHurR3sM9OtwdO+6vPaMsrCljizV5bLEmVBappiKi2nLvOKMsrIqioCJBm03vAGCUIrDAf71HvGXUba95R+tr0oHXpd6PBh9v2dKYad6NHqvOkqrOUlfpVO21xuut7hLtOdSjdw92a0/q+PjuvMfi2JbKIo7KIkGNr4jo7JoyTa8p1fRxZTprXImqS8KyuREkAPiCwILRyRip+6B04I3+o+0N735JxwoykrdXzJgp0pip3lE5RV3Fk7TfrtXbsSrt6TD6sL1XrR1RtXb0qaW9Twe7onJz+Dc7YFsaUxxSdWlI1aVhjS0JaWxJSGOKQxpbEtTYkrCqS0Mal6ralNJTAwDDhsCCU4sxUlebV4k59LsBx9vSkfck4x7/9aU13g6+FXVSZZ1UOVmmfJJ6w1XqDFSq3apUeyKgvYd69FZbl37X1qm32rq093DPoA3Ax1McCmhsSUgVRUGVR4IqL3JUHglmgs7YEi/4VBQHFQrYCju2QqljTHGIHYEBYAACC04fiZjX5HvkPW+10kfvSof3eN8ffnfwje8GEy6Xyif2V2nGTFWiok4dTrUOaoxa3TId7EnqUFdMH/XEdLg7ro+6YzrUHdXBrpjaOvrUHUue9McpCzs6oyysM8rCqioNKewEFArYCjqWQoGAKoqCGlce1hmlYY0rD6u6NKySkKNIyFYoQD8OgNMLgQWfHL0feSHmyF7pyD7vsX2f1P6+N/3UfeDojfAGZUnFVV61pqTa2+235IzU19VScZV6g5U6bMp00C3VR26JOmJGHb1xtfemw413HO6Oqr03rljCzRzRhHvUfjT5si2pKBhQUchRaTig4pCj0rCj4nBAxaGAioKOSsIBFYUCKg05Ki/qrwCVFwUVdmw5tq2QY8mxbYWDtkrDjkpCDn08AHyRz99vJuRxaisa4x0TLhz858ZIfe1ecDmyt79K89Ee7/vOVqm7zZt26jnoHcf6VZImpg5JUqTCCzlFY6WiSu/7cRXeY6Qi9fwYqXisTKRSXXaZDiSK1Npj60B3TB91x7xAk/QCTSzhqr03praOqA50RdXWEdWh7qjiSS/ouEbqjiXVHUvqYNewXUFZllQaclQWcVQSdlQc9gJRSchRUSgg27JkWZIlywtNIa8SVFHkBaHyiJMaY8lKvV9RMKDy1JiK4qDKwg7VIQAnhcCC05tleWGiqFKqnj74GDcp9RySOlu8YJOuzPQclLoOeD/rOZQKNIe8ACR5j33tkt4Z+jQklaWOM23HCzThcskJS4GQdzhh7/mx1VJdqsJTXKVEsERRu0hRq0i9VpG6TUTdblCdyaC6ko66Ykn1xpLqiSXVE0uoJ5ZUV19CndG4OnoT6uiLqyNV8Ym7RvGkq0TSqC+eVMI1MkbqjCbUGc1t5dWJsC0p5NgKBryprXRfj1cxSleIAgqlqkBOwFLQ9saEHVuRYCDzGAnaCgcDigT7X/NxwYCl4pCTed+iUEABy5JtWwrYlgKWpbBjU1kCTiEEFsAOSKXjvCMXyYQ3FdV7WOo57D2mw0v66P2o/xg4xk14RzoE5cBJHSWD/tSSgkX9gScQlpyQ91y4Qiopl6pS4ShU7K24CkYkp0jGCStuhdTrBtTrOupOOuoxIXWpSJ1uWB1uWJ1uSEk5cq2AXFlyjVFvLKn21FRYe29cXX0JucbINd69wM2AMUdSQck1Ul/cVV98iAbqAisNe5Wl9GPYCWTCVMixFQ70h6b0c14dqZ9leavNHNsLRI5tqSgYUEnYq1iVhh1FggEFA1YmjDm2pWDAC3BOwMoEuWDAC1RUo4CjEViAfAUcqfQM78iHMd6OwL1HvPAS7ZSSUa+xOBmVElGp74jUfShV6UlVd2JdUqxbinZJsU4p3isl05vqpd5zsJ2Gh2BJCqWOipxeEJACQSlYLIVLvRAULpPKSrz7S1kByba9RyfsjQuVKBGIqE8Rxe2wElZQCTusuBVUzATVZwLqdQOKugH1JG3FTCB12IobL0j1uI563KA6k456E1I04aovnlRvPKm+uDeVNvDvuzFSPOmqJ+aN6YkljhmUuqIJdY1gZelEWJayAkw62Az8OuT0V6oCqaqRbXlTdgHb6g+QqUfbkiJBr5JVnJrqizipapXjVazCji0nYCtoW3JSQcp1TaYHK5rwKnLpcFceCaosEpTkXcfu1NEbT6o8EtSYkpCqSkIaWxrKeUowkXTVPaBSWBZx2CsJGQQWoFAsy7vLdahEqpg49PjjSSakRK8XXmLdXoBJRKVk3As/sR5vBVVfu9TXIUU7vLHpI9Hr3ejy44Ep1p06uo4OQSYpJZJSos+rGOXIkVR6cp+2nx1MTaEFU0fIq5C5Si1/N15icUJSRWnmehsnIhlXJpmQcRMyyYRc21E8UKpooFR9gRL1WEWKy1HC2IoPPFzLC1CupZhre9WmzOEooYDichSTo6gJKmocReNJxeIxxWIxxWJx9SUS6nIjajdFaneL1O6GFXctxZNuqkcp3ZBtyRhlmrVPJ+lgFUw9SumKnBes4qlw9HGObWlcWVg1FRGNLfZukuoao2TqdY5t9QewkBe8AlYqxKWm/1zjvXc86SqW9KZFJS/IWbIyIbE41buVDna21X+O3mdIB7/UdGPIW+X38Qqbnfr96eeMSZ2z6x2SMsEzXb1zqKwNicACnIoCjhQo8yocI8VNeuHGjXsByU14wSje61WHoh1esIl2eWHGTXpjjOuFn3iPF37iPV6ASoeiRF/qMeq9dyLmvW8ylvod8QFfxwZUk+SNd+NSLgu/BrA+9pgW0rGm2grAtiTbSMH+p4ztSHZQJhCSGwhJsrzrmTqMMXIDESWcYiUCxYoHipW0gqmwNmCcFZCxndRjUK4CistWwliKu7ZixlLcOIrK8QKW6yhqbCWMraSREsZSwliSbNkBR3YgIDsQkLEc9SaMuuOWeuJGXXEppLiqnD5VBvo0xu5VkRXTR26RWuKl2h8r1oeJEnWZIiVNQIlk6pA3xShJrmwZSUElVWV3aKw6VG136QynWx8lQjrgVqitY4wOdFToXVMqV9k9S0aW4gooqYDiCsjIliVXjlzZcuUoKSNLSdlKKKCkbB39b0L2O4aUUERRRRVSVIW5k7xlacDeTQGFApaSxiiRCljpoDNwyjIYsBUcMM3ohSRbtq1UxS0d2qSAbStgS45tS5aUTBolXG/1YiLpBTqvaulVJpOuUXnEa5qvLAqqsjioMcUhffOyGZnAWWgEFgCDswPe1I/f3GR/0ElPhyVTwSUZ88KUZaf+Blne//kTsf6ptHRosp0BR8B7j2inV4mKdqam6OLeH/10r1Hm+2T/c+lwloxnB6xMtSrmnc/A3yXjBbv0NKCk/qpKPyv1O6xEr45uJU5rV3gkrvPJiGvwEGlLJ/X3foT+QiUtR67lKGmH5FpBJW1HMkbBZI+CyV4F1L/nUlxB9dol6rOLFbNCknFlmYQs48o2SS9EypYrS0aSa2zF5IWymHEUV0ABuQorrogVV1hxOUoqqqB6TUh98g7XWApYrmzXlRNzZclVMvU+SdMftty4LTduSbLkylJASQWV9B4t77wTJvX75WTCoUkFQyMrdWRzZWdelwl23ZIGtNoZ21Hg8+tG5h9KDggsAEY3O+A1DIeK/T6T4ZGIesHFTcgLWLYyTTjpilIy7o2TSf08dUj9lav01F0y7vUNWVYqHFleqEomUqEu3l/5chPZ4SsRHfA7Y6n5GTcVytwBXyf7X58V4OJeo3ekvL+nKVjsVd+6D/avrIt2fex3xwf8rtSUmB2Qivv3PVLxWO91Xa3e0dnq9XANg4BJKGASCrp9Q44NKq6ge0Tl7pHc3tw6xtdDjT0FJKzCVJuOhcACAIXkhL0D+UsmpI/3ebjJ7GDmJlOVLbu/GVzqD2npqlj6NZlpR0sKpfueUivqEr39PWDRVMN7umo28L1lsqbuvPcd8DtsJ/XPPeI92gGvGpcY0Fdm3Oz3texU8Ixnh72P/650M7wd9F5vWR8Lq+lwaLL7vD4u87tS1zMdqAdwbH8jA4EFAHBqCAzyJ8sO6OTmnY7DCXl7I2FUOPY0KQAAwChBYAEAAKMegQUAAIx6BBYAADDqEVgAAMCoR2ABAACjHoEFAACMegQWAAAw6p1QYHnooYc0depURSIRLVy4UFu3bj3u+EcffVQzZsxQJBLRrFmz9NRTT2X93BijO+64Q+PHj1dRUZEaGhr01ltvncipAQCA01DegeWRRx7RmjVrdOedd2rHjh2aPXu2lixZora2tkHHb968WStWrNDVV1+tnTt3atmyZVq2bJl27dqVGfOP//iP+u53v6u1a9dqy5YtKikp0ZIlS9TXN/R9HgAAwOnPMmawmwoc28KFCzV//nw9+OCDkiTXdVVXV6cbbrhBN99881Hjly9fru7ubj355JOZ5y6++GLNmTNHa9eulTFGEyZM0De+8Q39zd/8jSSpvb1dNTU1+tGPfqQvf/nLQ55TR0eHKioq1N7ervLy8nw+DgAA8Ek+f7/zqrDEYjFt375dDQ0N/W9g22poaFBzc/Ogr2lubs4aL0lLlizJjN+zZ49aWlqyxlRUVGjhwoXHfE8AAPDJktfNDw8ePKhkMqmampqs52tqavTGG28M+pqWlpZBx7e0tGR+nn7uWGM+LhqNKhqNZr7v6OjI52MAAIBTzCl5t+bGxkb97d/+7VHPE1wAADh1pP9u59Kdkldgqa6uViAQUGtra9bzra2tqq2tHfQ1tbW1xx2ffmxtbdX48eOzxsyZM2fQ97zlllu0Zs2azPf79+/XzJkzVVdXl8/HAQAAo0BnZ6cqKiqOOyavwBIKhTR37lw1NTVp2bJlkrym26amJl1//fWDvqa+vl5NTU268cYbM89t2rRJ9fX1kqRp06aptrZWTU1NmYDS0dGhLVu26Ktf/eqg7xkOhxUOhzPfl5aWat++fSorK5NlWfl8pCF1dHSorq5O+/bto6F3hHGtC4drXThc68LhWhfOcF1rY4w6Ozs1YcKEIcfmPSW0Zs0arVy5UvPmzdOCBQt03333qbu7W6tWrZIkXXXVVZo4caIaGxslSatXr9bixYt1zz33aOnSpVq/fr22bdumhx9+WJJkWZZuvPFG/d3f/Z2mT5+uadOm6fbbb9eECRMyoWgotm1r0qRJ+X6UvJSXl/MfQIFwrQuHa104XOvC4VoXznBc66EqK2l5B5bly5frwIEDuuOOO9TS0qI5c+Zo48aNmabZvXv3yrb7Fx8tWrRI69at02233aZbb71V06dP14YNG3T++ednxnzzm99Ud3e3rrnmGh05ckSXXHKJNm7cqEgkku/pAQCA01De+7B80rDHS+FwrQuHa104XOvC4VoXjh/XmnsJDSEcDuvOO+/M6pnByOBaFw7XunC41oXDtS4cP641FRYAADDqUWEBAACjHoEFAACMegQWAAAw6hFYAADAqEdgGcJDDz2kqVOnKhKJaOHChdq6davfp3RKa2xs1Pz581VWVqZx48Zp2bJl2r17d9aYvr4+XXfddaqqqlJpaan+5E/+5KjbOyB/d999d2ajxjSu9fDZv3+//uIv/kJVVVUqKirSrFmztG3btszPjTG64447NH78eBUVFamhoUFvvfWWj2d86komk7r99ts1bdo0FRUV6ayzztJ3vvOdrPvRcL1PzK9//Wv98R//sSZMmCDLsrRhw4asn+dyXQ8fPqwrrrhC5eXlqqys1NVXX62urq6TPzmDY1q/fr0JhULmBz/4gfntb39rvvKVr5jKykrT2trq96mdspYsWWJ++MMfml27dpmXXnrJfP7znzeTJ082XV1dmTHXXnutqaurM01NTWbbtm3m4osvNosWLfLxrE99W7duNVOnTjUXXHCBWb16deZ5rvXwOHz4sJkyZYr5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\n",
+      "text/plain": [
+       "<Figure size 640x480 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "plt.plot(history.history['loss'])\n",
+    "plt.plot(history.history['val_loss'])"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "nvidiaTeslaT4",
+   "dataSources": [
+    {
+     "datasetId": 14872,
+     "sourceId": 228180,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30887,
+   "isGpuEnabled": true,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.12"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 28.600187,
+   "end_time": "2025-02-13T19:28:49.206864",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2025-02-13T19:28:20.606677",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
