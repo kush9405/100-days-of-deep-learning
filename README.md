@@ -1,4 +1,4 @@
-Sure, I'll help you create a README file for your deep learning repository. Here is a basic template you can use:
+
 
 ```markdown
 # Deep Learning Repository
